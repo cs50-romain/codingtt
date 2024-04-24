@@ -4,16 +4,52 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"math"
+	//"math"
 	"os"
 	"strings"
 	"time"
 )
 
+const HOURS_TO_SECONDS = 3600
+const MINUTES_TO_SECONDS = 60
+
 type Timer struct {
 	Start time.Time
 	Stop time.Time
 	Pause [2]time.Time
+}
+
+
+func (t *Timer) calcTotalSeconds() (int) {
+	var startTotalSeconds, stopTotalSeconds, totalSeconds int
+
+	startTotalSeconds = (t.Start.Hour() * HOURS_TO_SECONDS) + (t.Start.Minute() * MINUTES_TO_SECONDS) + t.Start.Second()
+
+	stopTotalSeconds = (t.Stop.Hour() * HOURS_TO_SECONDS) + (t.Stop.Minute() * MINUTES_TO_SECONDS) + t.Stop.Second()
+
+	totalSeconds = stopTotalSeconds - startTotalSeconds
+
+	fmt.Printf("Time start: %d:%d:%d; Time end: %d:%d:%d, totalSeconds = %d\n", t.Start.Hour(), t.Start.Minute(), t.Start.Second(), t.Stop.Hour(), t.Stop.Minute(), t.Stop.Second(), totalSeconds)
+
+	return totalSeconds
+
+}
+
+func (t *Timer) formatTotalTime(totalSeconds int) (int, int, int) {
+	var hours, mins, secs int
+	for totalSeconds >= 3600 {
+		totalSeconds -= 3600
+		hours++
+	}
+
+	for totalSeconds >= 60 {
+		totalSeconds -= 60
+		mins++
+	}
+
+	secs = totalSeconds
+
+	return int(hours), int(mins), int(secs)
 }
 
 var timer Timer
@@ -32,7 +68,6 @@ func Start(options []string) error {
 	if option == "-start" {
 		timer.Start = time.Now()
 		fmt.Println("Timer started!")
-		go showTimer()
 		if err := startRepl(); err != nil {
 			return err
 		}
@@ -67,8 +102,9 @@ func startRepl() error {
 			// Calculate amount of time between start and stop and substart pause time
 			// Export to .csv file
 			// err := util.Export(timer)
-			hour, mins, sec := timer.calculateTime()
-			fmt.Printf("Time spent coding: %d:%d:%d hours\n", hour, mins, sec)
+			totalSeconds := timer.calcTotalSeconds()
+			hour, mins, sec := timer.formatTotalTime(totalSeconds)
+			fmt.Printf("Time spent coding: %d:%d:%d\n", hour, mins, sec)
 			// Exit
 			break
 		} else if command == "pause" {
@@ -76,6 +112,10 @@ func startRepl() error {
 			fmt.Println("pausing")
 		} else if command == "start" {
 			timer.Pause[1] = time.Now()
+			
+			// Calculate the total seconds since the first pause.
+			// Add that total somewhere so it is remembered.
+
 			fmt.Println("Restarting")
 		} else if command == "exit" {
 			fmt.Println("Exiting")
@@ -90,20 +130,4 @@ func startRepl() error {
 func parse(in string) (string, error) {
 	commands := strings.Split(in, " ")
 	return strings.TrimSuffix(commands[0], "\n"), nil
-}
-
-// Figure this out later. Show a timer.
-func showTimer() {
-	//for {
-		//fmt.Print(time.Now())
-	//}
-}
-
-func (t *Timer) calculateTime() (int, int, int) {
-	fmt.Println(timer.Stop.Clock())
-	fmt.Println(timer.Start.Clock())
-	hours := math.Abs(float64(timer.Stop.Hour() - timer.Start.Hour()))
-	mins := math.Abs(float64(timer.Stop.Minute() - timer.Start.Minute()))
-	sec := math.Abs(float64(timer.Stop.Second() - timer.Start.Second()))
-	return int(hours), int(mins), int(sec)
 }
