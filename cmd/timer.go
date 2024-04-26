@@ -46,7 +46,7 @@ func (t *Timer) formatTotalTime(totalSeconds int) string {
 
 	secs = totalSeconds
 
-	return fmt.Sprintf("%d:%d:%d", int(hours), int(mins), int(secs))
+	return fmt.Sprintf("%02d:%02d:%02d", int(hours), int(mins), int(secs))
 }
 
 func (t *Timer) ExportToCsv() error {
