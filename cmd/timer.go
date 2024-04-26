@@ -59,7 +59,8 @@ func (t *Timer) ExportToCsv() error {
 	defer file.Close()
 
 	year, month, day := time.Now().Date()
-	date := fmt.Sprintf("%v/%d/%d", month, day, year)
+	fmt.Println()
+	date := fmt.Sprintf("%02d/%02d/%d", int(month), day, year)
 	header := []string{"Date", "Coding Time", "Notes"}
 	totalStr := fmt.Sprintf("%s", t.formatTotalTime(t.Total))
 	line := []string{date, totalStr, "notes"}
