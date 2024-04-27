@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-var timer Timer
-
 func Start() error {
 	// Start repl
 	if err := startRepl(); err != nil {
@@ -19,6 +17,7 @@ func Start() error {
 
 func startRepl() error {
 	reader := bufio.NewReader(os.Stdin)
+	_, _ = getTimers()
 	for {
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
@@ -32,19 +31,28 @@ func startRepl() error {
 		}
 		command := fields[0]
 
+		// This commands can have 0 arguments
 		if command == "help" {
-			getHelp()
-		} else if command == "start" {
-			getStart()
-		} else if command == "stop" {
-			getStop()
-		} else if command == "pause" {
-			getPause()
-		} else if command == "restart" {
-			getRestart()
+			getHelp(fields)
 		} else if command == "exit" {
-			getExit()
+			getExit(fields)
 			break
+		}
+
+		if len(fields) <= 1 {
+			continue
+		}
+
+		if command == "create" {
+			getCreate(fields[1:])
+		} else if command == "start" {
+			getStart(fields[1:])
+		} else if command == "stop" {
+			getStop(fields[1:])
+		} else if command == "pause" {
+			getPause(fields[1:])
+		} else if command == "restart" {
+			getRestart(fields[1:])
 		} else {
 			fmt.Printf("Invalid command. Type help to show available commands\n")
 			continue
@@ -53,6 +61,7 @@ func startRepl() error {
 	return nil
 }
 
+// Testable and should be tested
 func parse(in string) ([]string) {
 	in = strings.ToLower(in)
 	fields := strings.Fields(in)

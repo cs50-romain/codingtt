@@ -11,13 +11,48 @@ const HOURS_TO_SECONDS = 3600
 const MINUTES_TO_SECONDS = 60
 const CSV_FILE = "data.csv"
 
+var timers = make(map[string]*Timer)
+
 type Timer struct {
-	Start time.Time
-	Stop time.Time
-	Pause [2]time.Time
-	Total int
+	Name	string
+	Export  bool
+	Start	time.Time
+	Stop	time.Time
+	Pause	[2]time.Time
+	Total	int
 }
 
+func CreateTimer(name string, exportOption bool) *Timer {
+	return &Timer{
+		Name: name,
+		Export: exportOption,
+	}
+}
+
+// Import timers from csv file. Init timers map.
+func getTimers() (map[string]*Timer, error) {
+	file, err := os.Open(CSV_FILE)
+	if err != nil {
+		return timers, err
+	}
+	
+	r := csv.NewReader(file)
+	timerData, err := r.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+
+	counter := 1
+	for counter < len(timerData) {
+		timerName := timerData[counter][0]
+		timers[timerName] = &Timer{Name: timerName,}
+		counter++
+	}
+
+	return timers, nil
+}
+
+// Testable and needs tested
 func (t *Timer) calcTotalSeconds(startTime, stopTime time.Time) (int) {
 	var startTotalSeconds, stopTotalSeconds, totalSeconds int
 
@@ -32,6 +67,7 @@ func (t *Timer) calcTotalSeconds(startTime, stopTime time.Time) (int) {
 	return totalSeconds
 }
 
+// Testable and needs tested
 func (t *Timer) formatTotalTime(totalSeconds int) string {
 	var hours, mins, secs int
 	for totalSeconds >= 3600 {
@@ -49,7 +85,8 @@ func (t *Timer) formatTotalTime(totalSeconds int) string {
 	return fmt.Sprintf("%02d:%02d:%02d", int(hours), int(mins), int(secs))
 }
 
-func (t *Timer) ExportToCsv() error {
+// Should I test?
+func (t *Timer) exportToCsv() error {
 	var data [][]string
 
 	file, err := os.OpenFile(CSV_FILE, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -61,9 +98,9 @@ func (t *Timer) ExportToCsv() error {
 	year, month, day := time.Now().Date()
 	fmt.Println()
 	date := fmt.Sprintf("%02d/%02d/%d", int(month), day, year)
-	header := []string{"Date", "Coding Time", "Notes"}
+	header := []string{"Timer Name", "Date", "Coding Time", "Notes"}
 	totalStr := fmt.Sprintf("%s", t.formatTotalTime(t.Total))
-	line := []string{date, totalStr, "notes"}
+	line := []string{t.Name, date, totalStr, "notes"}
 
 	if fileIsEmpty(CSV_FILE) {
 		data = [][]string{
@@ -83,4 +120,11 @@ func (t *Timer) ExportToCsv() error {
 
 	w.Flush()
 	return nil	
+}
+
+func timerExists(timerName string) bool {
+	if _, ok := timers[timerName]; !ok {
+		return false
+	}
+	return true
 }
