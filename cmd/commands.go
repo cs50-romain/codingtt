@@ -68,7 +68,7 @@ func getExit(args []string) {
 		if timer.Export != true || timer.Name == "unknown" {
 			continue
 		}
-		err := timer.exportToCsv()
+		err := timer.ExportToCsv(CSV_FILE)
 		if err != nil {
 			log.Printf("error export data for timer: %s\n", timer.Name)
 		}
@@ -112,10 +112,15 @@ func getStop(args []string) {
 		timer = timers[timerName]
 	}
 
+	if timer.Start.IsZero() {
+		fmt.Println("Timer has not been started.")
+		return
+	}
+
 	timer.Stop = time.Now()
 	fmt.Println("Stopping ", timer.Name)
 
-	timer.Total = timer.calcTotalSeconds(timer.Start, timer.Stop)
+	timer.Total = timer.CalcTotalSeconds(timer.Start, timer.Stop)
 	fmt.Printf("Time spent coding: %s\n", timer.formatTotalTime(timer.Total))
 }
 
@@ -124,10 +129,14 @@ func getPause(args []string) {
 
 	var timer *Timer
 	if timerName == "unknown" {
-		// TODO: Pause timer top of stack
 		timer = Stack.Peek()
 	} else {
 		timer = timers[timerName]
+	}
+
+	if timer.Start.IsZero() {
+		fmt.Println("Timer has not been started.")
+		return
 	}
 
 	timer.Pause[0] = time.Now()
@@ -139,15 +148,19 @@ func getRestart(args []string) {
 
 	var timer *Timer
 	if timerName == "unknown" {
-		// TODO: Restart timer top of stack
 		timer = Stack.Peek()
 		timer.Pause[1] = time.Now()
 	} else {
 		timer = timers[timerName]
 	}
 
+	if timer.Pause[0].IsZero() {
+		fmt.Println("Timer has not been paused.")
+		return
+	}
+
 	timer.Pause[1] = time.Now()
-	totalPauseTime := timer.calcTotalSeconds(timer.Pause[0], timer.Pause[1])
+	totalPauseTime := timer.CalcTotalSeconds(timer.Pause[0], timer.Pause[1])
 	timer.Total = timer.Total - totalPauseTime
 	fmt.Println("Restarting")
 }
