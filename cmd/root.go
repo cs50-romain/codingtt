@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
+
+	"github.com/TwiN/go-color"
 )	
 
 func Start() error {
@@ -18,6 +19,7 @@ func Start() error {
 
 func startRepl() error {
 	reader := bufio.NewReader(os.Stdin)
+	fmt.Println(color.Ize(color.Purple, "Type help to view available commands. Happy timing!"))
 	for {
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')

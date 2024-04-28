@@ -162,7 +162,7 @@ func getRestart(args []string) {
 	timer.Pause[1] = time.Now()
 	totalPauseTime := timer.CalcTotalSeconds(timer.Pause[0], timer.Pause[1])
 	timer.Total = timer.Total - totalPauseTime
-	fmt.Println("Restarting")
+	fmt.Println("Restarting", timer.Name)
 }
 
 func parseName(args []string) string {
