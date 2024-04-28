@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-)
+)	
 
 func Start() error {
 	// Start repl
@@ -17,7 +17,6 @@ func Start() error {
 
 func startRepl() error {
 	reader := bufio.NewReader(os.Stdin)
-	_, _ = getTimers()
 	for {
 		fmt.Print("> ")
 		input, err := reader.ReadString('\n')
@@ -30,29 +29,25 @@ func startRepl() error {
 			continue
 		}
 		command := fields[0]
+		var args []string
 
-		// This commands can have 0 arguments
+		if len(fields) > 1 {
+			args = fields[1:]
+		}
+
 		if command == "help" {
-			getHelp(fields)
+			getHelp(args)
 		} else if command == "exit" {
-			getExit(fields)
+			getExit(args)
 			break
-		}
-
-		if len(fields) <= 1 {
-			continue
-		}
-
-		if command == "create" {
-			getCreate(fields[1:])
 		} else if command == "start" {
-			getStart(fields[1:])
+			getStart(args)
 		} else if command == "stop" {
-			getStop(fields[1:])
+			getStop(args)
 		} else if command == "pause" {
-			getPause(fields[1:])
+			getPause(args)
 		} else if command == "restart" {
-			getRestart(fields[1:])
+			getRestart(args)
 		} else {
 			fmt.Printf("Invalid command. Type help to show available commands\n")
 			continue

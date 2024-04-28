@@ -22,6 +22,18 @@ type Timer struct {
 	Total	int
 }
 
+func (t *Timer) GetName() string {
+	return t.Name
+}
+
+func (t *Timer) GetStart() time.Time {
+	return t.Start
+}
+
+func (t *Timer) GetStop() time.Time {
+	return t.Stop
+}
+
 func CreateTimer(name string, exportOption bool) *Timer {
 	return &Timer{
 		Name: name,
@@ -30,26 +42,8 @@ func CreateTimer(name string, exportOption bool) *Timer {
 }
 
 // Import timers from csv file. Init timers map.
-func getTimers() (map[string]*Timer, error) {
-	file, err := os.Open(CSV_FILE)
-	if err != nil {
-		return timers, err
-	}
-	
-	r := csv.NewReader(file)
-	timerData, err := r.ReadAll()
-	if err != nil {
-		return nil, err
-	}
-
-	counter := 1
-	for counter < len(timerData) {
-		timerName := timerData[counter][0]
-		timers[timerName] = &Timer{Name: timerName,}
-		counter++
-	}
-
-	return timers, nil
+func getTimers() map[string]*Timer {
+	return timers
 }
 
 // Testable and needs tested
