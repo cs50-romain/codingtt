@@ -17,8 +17,6 @@ func Start() error {
 }
 
 func startRepl() error {
-	var t time.Time
-	fmt.Println(t)
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("> ")
