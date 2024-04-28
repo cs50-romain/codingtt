@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
-)
-
-var timer Timer
+)	
 
 func Start() error {
 	// Start repl
@@ -31,20 +29,25 @@ func startRepl() error {
 			continue
 		}
 		command := fields[0]
+		var args []string
+
+		if len(fields) > 1 {
+			args = fields[1:]
+		}
 
 		if command == "help" {
-			getHelp()
-		} else if command == "start" {
-			getStart()
-		} else if command == "stop" {
-			getStop()
-		} else if command == "pause" {
-			getPause()
-		} else if command == "restart" {
-			getRestart()
+			getHelp(args)
 		} else if command == "exit" {
-			getExit()
+			getExit(args)
 			break
+		} else if command == "start" {
+			getStart(args)
+		} else if command == "stop" {
+			getStop(args)
+		} else if command == "pause" {
+			getPause(args)
+		} else if command == "restart" {
+			getRestart(args)
 		} else {
 			fmt.Printf("Invalid command. Type help to show available commands\n")
 			continue
@@ -53,6 +56,7 @@ func startRepl() error {
 	return nil
 }
 
+// Testable and should be tested
 func parse(in string) ([]string) {
 	in = strings.ToLower(in)
 	fields := strings.Fields(in)

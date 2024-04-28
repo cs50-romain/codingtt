@@ -7,9 +7,10 @@ import (
 )
 
 type Command struct {
-	Name	string
-	Desc	string
-	CallBack func()
+	Name		string
+	Desc		string
+	//Arguments	[]string -> Can be used to hold any sort of arguments for a command
+	CallBack	func([]string)
 }
 
 func getCommands() map[string]Command {
@@ -26,7 +27,7 @@ func getCommands() map[string]Command {
 		},
 		"start": {
 			Name: "start",
-			Desc: "Starts the timer",
+			Desc: "Starts the timer. start <timer name>",
 			CallBack: getStart,
 		},
 		"stop": {
@@ -36,54 +37,125 @@ func getCommands() map[string]Command {
 		},
 		"pause": {
 			Name: "pause",
-			Desc: "Pauses the timer.",
+			Desc: "Pauses the timer. pause <timer name>.",
 			CallBack: getPause,
 		},
 		"restart": {
 			Name: "restart",
-			Desc: "Restarts the timer.",
+			Desc: "Restarts the timer. restart <timer name>",
 			CallBack: getRestart,
 		},
 	}
 }
 
-func getHelp() {
+func getHelp(args []string) {
 	availableCommands := getCommands()
-	for _, cmd := range availableCommands {
+
+	if len(args) <= 1 {
+		for _, cmd := range availableCommands {
+			fmt.Printf(" -%s: %s\n", cmd.Name, cmd.Desc)
+		}
+	} else {
+		cmdName := args[1]
+		cmd := availableCommands[cmdName]
 		fmt.Printf(" -%s: %s\n", cmd.Name, cmd.Desc)
 	}
 }
 
-func getExit() {
-	// Export data to csv
-	// err := util.Export(timer)
-	err := timer.ExportToCsv()
-	if err != nil {
-		log.Panic(err)
+func getExit(args []string) {
+	timerss := getTimers()
+	for _, timer := range timerss {
+		if timer.Export != true || timer.Name == "unknown" {
+			continue
+		}
+		err := timer.exportToCsv()
+		if err != nil {
+			log.Printf("error export data for timer: %s\n", timer.Name)
+		}
 	}
 }
 
-func getStart() {
+func getStart(args []string) {
+	timerName := parseName(args)
+	
+	var exportOpt bool
+	if len(args) < 2 {
+		exportOpt = true
+	} else if args[1] == "false" {
+		exportOpt = false
+	} else {
+		exportOpt = true
+	}
+
+	timer := CreateTimer(timerName, exportOpt)
+	timers[timerName] = timer
+
+	Stack.Push(timer)
+
 	timer.Start = time.Now()
-	fmt.Println("Started timer, program mf!")
+	fmt.Printf("Started %s!\n", timer.Name)
 }
 
-func getStop() {
+func getStop(args []string) {
+	var timer *Timer
+
+	timerName := parseName(args)
+	/*
+	if timerExists(timerName) == false {
+		fmt.Println("Invalid timer name")
+		return
+	}
+	*/
+	if len(args) == 0 {
+		timer = Stack.Pop()
+	} else {
+		timer = timers[timerName]
+	}
+
 	timer.Stop = time.Now()
-	fmt.Println("Stopping")
+	fmt.Println("Stopping ", timer.Name)
 
 	timer.Total = timer.calcTotalSeconds(timer.Start, timer.Stop)
 	fmt.Printf("Time spent coding: %s\n", timer.formatTotalTime(timer.Total))
 }
 
-func getPause() {
+func getPause(args []string) {
+	timerName := parseName(args)
+
+	var timer *Timer
+	if timerName == "unknown" {
+		// TODO: Pause timer top of stack
+		timer = Stack.Peek()
+	} else {
+		timer = timers[timerName]
+	}
+
 	timer.Pause[0] = time.Now()
-	fmt.Println("pausing")
+	fmt.Println("pausing", timer.Name)
 }
 
-func getRestart() {
+func getRestart(args []string) {
+	timerName := parseName(args)
+
+	var timer *Timer
+	if timerName == "unknown" {
+		// TODO: Restart timer top of stack
+		timer = Stack.Peek()
+		timer.Pause[1] = time.Now()
+	} else {
+		timer = timers[timerName]
+	}
+
 	timer.Pause[1] = time.Now()
 	totalPauseTime := timer.calcTotalSeconds(timer.Pause[0], timer.Pause[1])
 	timer.Total = timer.Total - totalPauseTime
 	fmt.Println("Restarting")
+}
+
+func parseName(args []string) string {
+	if len(args) == 0 {
+		return "unknown"
+	} else {
+		return args[0]
+	}
 }
