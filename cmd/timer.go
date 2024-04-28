@@ -22,18 +22,6 @@ type Timer struct {
 	Total	int
 }
 
-func (t *Timer) GetName() string {
-	return t.Name
-}
-
-func (t *Timer) GetStart() time.Time {
-	return t.Start
-}
-
-func (t *Timer) GetStop() time.Time {
-	return t.Stop
-}
-
 func CreateTimer(name string, exportOption bool) *Timer {
 	return &Timer{
 		Name: name,
@@ -47,7 +35,7 @@ func getTimers() map[string]*Timer {
 }
 
 // Testable and needs tested
-func (t *Timer) calcTotalSeconds(startTime, stopTime time.Time) (int) {
+func (t *Timer) CalcTotalSeconds(startTime, stopTime time.Time) (int) {
 	var startTotalSeconds, stopTotalSeconds, totalSeconds int
 
 	startTotalSeconds = (startTime.Hour() * HOURS_TO_SECONDS) + (startTime.Minute() * MINUTES_TO_SECONDS) + startTime.Second()
@@ -79,24 +67,23 @@ func (t *Timer) formatTotalTime(totalSeconds int) string {
 	return fmt.Sprintf("%02d:%02d:%02d", int(hours), int(mins), int(secs))
 }
 
-// Should I test?
-func (t *Timer) exportToCsv() error {
+func (t *Timer) ExportToCsv(filename string) error {
 	var data [][]string
 
-	file, err := os.OpenFile(CSV_FILE, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
+	// src
 	year, month, day := time.Now().Date()
-	fmt.Println()
 	date := fmt.Sprintf("%02d/%02d/%d", int(month), day, year)
 	header := []string{"Timer Name", "Date", "Coding Time", "Notes"}
 	totalStr := fmt.Sprintf("%s", t.formatTotalTime(t.Total))
 	line := []string{t.Name, date, totalStr, "notes"}
 
-	if fileIsEmpty(CSV_FILE) {
+	if fileIsEmpty(filename) {
 		data = [][]string{
 			header,
 			line,
@@ -107,6 +94,7 @@ func (t *Timer) exportToCsv() error {
 		}
 	}
 
+	// dst
 	w := csv.NewWriter(file)
 	if err = w.WriteAll(data); err != nil {
 		return err
